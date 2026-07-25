@@ -6,6 +6,7 @@ package archive
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 )
 
 type ArchiveDirOpts struct {
@@ -33,6 +34,22 @@ func getArchiver(archiveType string, outputPath string) Archiver {
 		return builder(outputPath)
 	}
 	return nil
+}
+
+// isSameFile reports whether paths a and b resolve to the same location on
+// disk, comparing their absolute (cleaned) forms. It is used to avoid adding an
+// archive's own output file to the archive when the output path lives inside
+// the source directory being walked.
+func isSameFile(a, b string) bool {
+	absA, err := filepath.Abs(a)
+	if err != nil {
+		return false
+	}
+	absB, err := filepath.Abs(b)
+	if err != nil {
+		return false
+	}
+	return absA == absB
 }
 
 func assertValidFile(infilename string) (os.FileInfo, error) {

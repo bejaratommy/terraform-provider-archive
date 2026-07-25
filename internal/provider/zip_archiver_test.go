@@ -117,6 +117,26 @@ func TestZipArchiver_Dir(t *testing.T) {
 	})
 }
 
+func TestZipArchiver_Dir_OutputPathInsideSourceDir(t *testing.T) {
+	sourceDir := t.TempDir()
+	if err := os.WriteFile(filepath.Join(sourceDir, "baz.txt"), []byte("This is baz"), 0644); err != nil {
+		t.Fatalf("unexpected error: %s", err)
+	}
+
+	// The output archive is written inside the source directory being archived.
+	// It must not appear as an entry in its own archive.
+	zipFilePath := filepath.Join(sourceDir, "bar.zip")
+
+	archiver := NewZipArchiver(zipFilePath)
+	if err := archiver.ArchiveDir(sourceDir, ArchiveDirOpts{}); err != nil {
+		t.Fatalf("unexpected error: %s", err)
+	}
+
+	ensureContents(t, zipFilePath, map[string][]byte{
+		"baz.txt": []byte("This is baz"),
+	})
+}
+
 func TestZipArchiver_Dir_Exclude(t *testing.T) {
 	zipFilePath := filepath.Join(t.TempDir(), "archive-dir-exclude.zip")
 

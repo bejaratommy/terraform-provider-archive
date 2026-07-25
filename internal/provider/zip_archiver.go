@@ -164,6 +164,12 @@ func (a *ZipArchiver) createWalkFunc(basePath, indirname string, opts ArchiveDir
 			return nil
 		}
 
+		// Skip the archive's own output file when it lives inside the source
+		// directory, so it is not (re)included in the archive it produces.
+		if isSameFile(path, a.filepath) {
+			return nil
+		}
+
 		if info.Mode()&os.ModeSymlink == os.ModeSymlink {
 			realPath, err := filepath.EvalSymlinks(path)
 			if err != nil {
