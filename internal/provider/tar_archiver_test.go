@@ -121,6 +121,26 @@ func TestTarArchiver_Dir(t *testing.T) {
 	})
 }
 
+func TestTarArchiver_Dir_OutputPathInsideSourceDir(t *testing.T) {
+	sourceDir := t.TempDir()
+	if err := os.WriteFile(filepath.Join(sourceDir, "baz.txt"), []byte("This is baz"), 0644); err != nil {
+		t.Fatalf("unexpected error: %s", err)
+	}
+
+	// The output archive is written inside the source directory being archived.
+	// It must not appear as an entry in its own archive.
+	tarFilePath := filepath.Join(sourceDir, "bar.tar.gz")
+
+	archiver := NewTarGzArchiver(tarFilePath)
+	if err := archiver.ArchiveDir(sourceDir, ArchiveDirOpts{}); err != nil {
+		t.Fatalf("unexpected error: %s", err)
+	}
+
+	ensureTarContents(t, tarFilePath, map[string][]byte{
+		"baz.txt": []byte("This is baz"),
+	})
+}
+
 func TestTarArchiver_Dir_Exclude(t *testing.T) {
 	tarFilePath := filepath.Join(t.TempDir(), "archive-dir-exclude.tar.gz")
 
