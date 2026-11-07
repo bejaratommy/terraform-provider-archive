@@ -1,5 +1,5 @@
 ---
-page_title: "archive_file Data Source - terraform-provider-archive"
+page_title: "archive_file Data Source - archive"
 subcategory: ""
 description: |-
   Generates an archive from content, a file, or directory of files. The archive is built during the terraform plan, so you must persist the archive through to the terraform apply. See the archive_file resource for an alternative if you cannot persist the file, such as in a multi-phase CI or build server context.
@@ -65,6 +65,7 @@ data "archive_file" "lambda_my_function" {
 - `exclude_symlink_directories` (Boolean) Boolean flag indicating whether symbolically linked directories should be excluded during the creation of the archive. Defaults to `false`.
 - `excludes` (Set of String) Specify files/directories to ignore when reading the `source_dir`. Supports glob file matching patterns including doublestar/globstar (`**`) patterns.
 - `output_file_mode` (String) String that specifies the octal file mode for all archived files. For example: `"0666"`. Setting this will ensure that cross platform usage of this module will not vary the modes of archived files (and ultimately checksums) resulting in more deterministic behavior.
+- `preserve_file_modtime` (Boolean) Preserve source file modification times when using `source_file` or `source_dir`. Defaults to `false` to keep archive checksums independent of source timestamps. Enabling this can produce different checksums for identical content with different timestamps. Has no effect on inline content.
 - `source` (Block Set) Specifies attributes of a single source file to include into the archive. One and only one of `source`, `source_content_filename` (with `source_content`), `source_file`, or `source_dir` must be specified. (see [below for nested schema](#nestedblock--source))
 - `source_content` (String) Add only this content to the archive with `source_content_filename` as the filename. One and only one of `source`, `source_content_filename` (with `source_content`), `source_file`, or `source_dir` must be specified.
 - `source_content_filename` (String) Set this as the filename when using `source_content`. One and only one of `source`, `source_content_filename` (with `source_content`), `source_file`, or `source_dir` must be specified.

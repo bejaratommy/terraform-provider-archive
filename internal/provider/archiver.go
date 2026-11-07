@@ -19,6 +19,7 @@ type Archiver interface {
 	ArchiveDir(indirname string, opts ArchiveDirOpts) error
 	ArchiveMultiple(content map[string][]byte) error
 	SetOutputFileMode(outputFileMode string)
+	SetPreserveFileModTime(preserve bool)
 }
 
 type ArchiverBuilder func(outputPath string) Archiver

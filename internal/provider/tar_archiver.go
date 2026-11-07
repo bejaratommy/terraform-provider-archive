@@ -23,12 +23,13 @@ const (
 )
 
 type TarArchiver struct {
-	compression       TarCompressionType
-	filepath          string
-	outputFileMode    string // Default value "" means unset
-	fileWriter        *os.File
-	tarWriter         *tar.Writer
-	compressionWriter io.WriteCloser
+	preserveFileModTime bool
+	compression         TarCompressionType
+	filepath            string
+	outputFileMode      string // Default value "" means unset
+	fileWriter          *os.File
+	tarWriter           *tar.Writer
+	compressionWriter   io.WriteCloser
 }
 
 func NewTarGzArchiver(filepath string) Archiver {
@@ -71,6 +72,10 @@ func (a *TarArchiver) ArchiveFile(infilename string) error {
 		Size:    fi.Size(),
 		Mode:    int64(fi.Mode()),
 		ModTime: time.Time{},
+	}
+
+	if a.preserveFileModTime {
+		header.ModTime = fi.ModTime()
 	}
 
 	if err := a.addFile(infilename, header); err != nil {
@@ -180,6 +185,10 @@ func (a *TarArchiver) createWalkFunc(basePath, indirname string, opts ArchiveDir
 			ModTime: time.Time{},
 		}
 
+		if a.preserveFileModTime {
+			header.ModTime = info.ModTime()
+		}
+
 		return a.addFile(path, header)
 	}
 }
@@ -215,6 +224,10 @@ func (a *TarArchiver) ArchiveMultiple(content map[string][]byte) error {
 
 func (a *TarArchiver) SetOutputFileMode(outputFileMode string) {
 	a.outputFileMode = outputFileMode
+}
+
+func (a *TarArchiver) SetPreserveFileModTime(preserve bool) {
+	a.preserveFileModTime = preserve
 }
 
 func (a *TarArchiver) open() error {
