@@ -16,6 +16,7 @@ import (
 	fwpath "github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/boolplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/setplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
@@ -183,6 +184,13 @@ func (d *archiveFileResource) Schema(ctx context.Context, req resource.SchemaReq
 			"output_size": schema.Int64Attribute{
 				Description: "The byte size of the output archive file.",
 				Computed:    true,
+			},
+			"preserve_file_modtime": schema.BoolAttribute{
+				Description: "Preserve source file modification times when using `source_file` or `source_dir`. Defaults to `false` to keep archive checksums independent of source timestamps. Enabling this can produce different checksums for identical content with different timestamps. Has no effect on inline content.",
+				Optional:    true,
+				PlanModifiers: []planmodifier.Bool{
+					boolplanmodifier.RequiresReplace(),
+				},
 			},
 			"output_file_mode": schema.StringAttribute{
 				Description: "String that specifies the octal file mode for all archived files. For example: `\"0666\"`. " +

@@ -1,0 +1,5 @@
+kind: ENHANCEMENTS
+body: "resource/archive_file and data-source/archive_file: Add preserve_file_modtime to optionally preserve source file modification times."
+time: 2026-11-07T12:00:00Z
+custom:
+  Issue: "40"

@@ -162,6 +162,10 @@ func (d *archiveFileDataSource) Schema(ctx context.Context, req datasource.Schem
 				Description: "The byte size of the output archive file.",
 				Computed:    true,
 			},
+			"preserve_file_modtime": schema.BoolAttribute{
+				Description: "Preserve source file modification times when using `source_file` or `source_dir`. Defaults to `false` to keep archive checksums independent of source timestamps. Enabling this can produce different checksums for identical content with different timestamps. Has no effect on inline content.",
+				Optional:    true,
+			},
 			"output_file_mode": schema.StringAttribute{
 				Description: "String that specifies the octal file mode for all archived files. For example: `\"0666\"`. " +
 					"Setting this will ensure that cross platform usage of this module will not vary the modes of archived " +
@@ -204,6 +208,8 @@ func archive(ctx context.Context, model fileModel) error {
 	if archiver == nil {
 		return fmt.Errorf("archive type not supported: %s", archiveType)
 	}
+
+	archiver.SetPreserveFileModTime(model.PreserveFileModTime.ValueBool())
 
 	outputFileMode := model.OutputFileMode.ValueString()
 	if outputFileMode != "" {
@@ -329,6 +335,7 @@ func (d *archiveFileDataSource) Metadata(_ context.Context, req datasource.Metad
 }
 
 type fileModel struct {
+	PreserveFileModTime       types.Bool   `tfsdk:"preserve_file_modtime"`
 	ID                        types.String `tfsdk:"id"`
 	Source                    types.Set    `tfsdk:"source"` // sourceModel
 	Type                      types.String `tfsdk:"type"`

@@ -16,10 +16,11 @@ import (
 )
 
 type ZipArchiver struct {
-	filepath       string
-	outputFileMode string // Default value "" means unset
-	filewriter     *os.File
-	writer         *zip.Writer
+	preserveFileModTime bool
+	filepath            string
+	outputFileMode      string // Default value "" means unset
+	filewriter          *os.File
+	writer              *zip.Writer
 }
 
 func NewZipArchiver(filepath string) Archiver {
@@ -65,8 +66,10 @@ func (a *ZipArchiver) ArchiveFile(infilename string) error {
 	}
 	fh.Name = filepath.ToSlash(fi.Name())
 	fh.Method = zip.Deflate
-	//nolint:staticcheck // This is required as fh.SetModTime has been deprecated since Go 1.10 and using fh.Modified alone isn't enough when using a zero value
-	fh.SetModTime(time.Time{})
+	if !a.preserveFileModTime {
+		//nolint:staticcheck // Modified alone does not clear the DOS timestamp.
+		fh.SetModTime(time.Time{})
+	}
 
 	if a.outputFileMode != "" {
 		filemode, err := strconv.ParseUint(a.outputFileMode, 0, 32)
@@ -198,9 +201,10 @@ func (a *ZipArchiver) createWalkFunc(basePath, indirname string, opts ArchiveDir
 		}
 		fh.Name = filepath.ToSlash(archivePath)
 		fh.Method = zip.Deflate
-		// fh.Modified alone isn't enough when using a zero value
-		//nolint:staticcheck
-		fh.SetModTime(time.Time{})
+		if !a.preserveFileModTime {
+			//nolint:staticcheck // Modified alone does not clear the DOS timestamp.
+			fh.SetModTime(time.Time{})
+		}
 
 		if a.outputFileMode != "" {
 			filemode, err := strconv.ParseUint(a.outputFileMode, 0, 32)
@@ -253,6 +257,10 @@ func (a *ZipArchiver) ArchiveMultiple(content map[string][]byte) error {
 
 func (a *ZipArchiver) SetOutputFileMode(outputFileMode string) {
 	a.outputFileMode = outputFileMode
+}
+
+func (a *ZipArchiver) SetPreserveFileModTime(preserve bool) {
+	a.preserveFileModTime = preserve
 }
 
 func (a *ZipArchiver) open() error {
